@@ -20,6 +20,6 @@ jobs:
       - uses: axolotl-pm/pmmp-plugin-actions/publish-nightly@main
         with:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
-          plugin-name: ${{ needs.build.outputs.plugin-name }}
+          plugin-name: ${{ needs.build.outputs.plugin-name }}-*
           plugin-version: ${{ needs.build.outputs.plugin-version }}
           pm-version: ${{ needs.build.outputs.pm-version }}

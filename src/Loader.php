@@ -130,10 +130,11 @@ final class Loader extends PluginBase{
 	}
 
 	private function extractBundledBridge() : string{
-		$name = self::bundledBridgeName();
+		$platform = self::platform();
+		$name = "bridge-$platform" . (Utils::getOS() === Utils::OS_WINDOWS ? ".exe" : "");
 		$source = $this->getResourcePath($name);
 		if(!is_file($source)){
-			throw new \InvalidArgumentException("Bundled bridge $name not found in plugin resources, build it and set bridge-binary in config.yml");
+			throw new \InvalidArgumentException("This phar has no bridge for $platform, download " . $this->getName() . "-$platform.phar or build the bridge and set bridge-binary in config.yml");
 		}
 		$hash = hash_file("sha256", $source);
 		if($hash === false){
@@ -182,7 +183,7 @@ final class Loader extends PluginBase{
 	/**
 	 * @throws \InvalidArgumentException
 	 */
-	private static function bundledBridgeName() : string{
+	private static function platform() : string{
 		$os = match(Utils::getOS()){
 			Utils::OS_WINDOWS => "win",
 			Utils::OS_LINUX => "linux",
@@ -194,7 +195,7 @@ final class Loader extends PluginBase{
 			"aarch64", "arm64" => "arm64",
 			default => throw new \InvalidArgumentException("No prebuilt bridge binary for architecture $machine, build it and set bridge-binary in config.yml")
 		};
-		return "bridge-$os-$arch" . ($os === "win" ? ".exe" : "");
+		return "$os-$arch";
 	}
 
 	/**

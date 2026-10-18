@@ -6,7 +6,7 @@ Windows requires at least Windows 10 1803 or Windows Server 2019.
 
 ## Setup
 
-1. Download `NXS.phar` from a release, or from the `nightly` pre-release for the latest `main`, and put it in `plugins/`.
+1. Download the phar for your system from a release, or from the `nightly` pre-release for the latest `main`, and put it in `plugins/`: `NXS-linux-amd64.phar`, `NXS-linux-arm64.phar`, `NXS-win-amd64.phar` or `NXS-win-arm64.phar`.
 2. Set `provider-origin`, and `token` if the provider requires one, in `plugin_data/NXS/config.yml`.
 3. Open the UDP `port` from `config.yml`. When using NAT, port forwarding, or Docker, list the public address in `endpoints`.
 4. Register `nxs` transport in `pocketmine.yml`'s `transport.name` section.

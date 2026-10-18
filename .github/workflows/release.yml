@@ -32,8 +32,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: axolotl-pm/pmmp-plugin-actions/publish-release@main
+      - name: Download phars
+        id: download
+        uses: actions/download-artifact@v8
         with:
-          artifact-id: ${{ needs.build.outputs.artifact-id }}
-          plugin-name: ${{ needs.build.outputs.plugin-name }}
-          pm-version: ${{ needs.build.outputs.pm-version }}
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: ${{ runner.temp }}
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ needs.build.outputs.plugin-name }} ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          body: For PocketMine-MP ${{ needs.build.outputs.pm-version }}
+          files: ${{ steps.download.outputs.download-path }}/${{ needs.build.outputs.plugin-name }}-*.phar
