@@ -19,7 +19,7 @@ jobs:
     needs: validate
     uses: ./.github/workflows/build-phar.yml
     with:
-      php-version: '8.2'
+      php-version: '8.4'
       attest: true
     permissions:
       id-token: write
