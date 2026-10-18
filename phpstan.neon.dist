@@ -1,0 +1,9 @@
+parameters:
+    level: 9
+    checkMissingCallableSignature: true
+    rememberPossiblyImpureFunctionValues: false
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - src
+    stubFiles:
+        - vendor/axolotl-pm/pocketmine-mp/tests/phpstan/stubs/pmmpthread.stub

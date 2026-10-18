@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: axolotl-pm/setup-php-action@1.0.0
+        with:
+          php-version: 8.4
+          install-path: ./bin
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: PHPStan
+        run: php vendor/bin/phpstan.phar analyze --no-progress
+
+  bridge:
+    name: Bridge
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge/go.mod
+          cache-dependency-path: bridge/go.sum
+
+      - name: Vet
+        working-directory: bridge
+        run: go vet ./...
+
+      - name: Build
+        working-directory: bridge
+        run: go build ./...

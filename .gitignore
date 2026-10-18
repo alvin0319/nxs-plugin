@@ -1,0 +1,6 @@
+/bridge/nxs-bridge
+/bridge/nxs-bridge.exe
+/resources/bridge-*
+
+/vendor/
+.idea/

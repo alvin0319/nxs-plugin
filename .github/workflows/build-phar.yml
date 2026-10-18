@@ -1,0 +1,116 @@
+name: Build Phar
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: PHP version to set up
+        required: true
+        type: string
+      attest:
+        description: Whether to generate a SLSA build provenance attestation for the phar
+        required: false
+        default: false
+        type: boolean
+      retention-days:
+        description: Days to retain the uploaded artifact
+        required: false
+        default: '1'
+        type: string
+
+    outputs:
+      plugin-name:
+        description: Value of the name field in plugin.yml
+        value: ${{ jobs.build.outputs.plugin-name }}
+      plugin-version:
+        description: Value of the version field in plugin.yml
+        value: ${{ jobs.build.outputs.plugin-version }}
+      pm-version:
+        description: PocketMine-MP API version(s) from plugin.yml
+        value: ${{ jobs.build.outputs.pm-version }}
+      artifact-id:
+        description: ID of the uploaded artifact for immutable download
+        value: ${{ jobs.build.outputs.artifact-id }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      plugin-name: ${{ steps.plugin-info.outputs.PLUGIN_NAME }}
+      plugin-version: ${{ steps.plugin-info.outputs.PLUGIN_VERSION }}
+      pm-version: ${{ steps.plugin-info.outputs.PM_VERSION }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge/go.mod
+          cache-dependency-path: bridge/go.sum
+
+      - name: Build bridge binaries
+        working-directory: bridge
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          set -e
+          for target in linux/amd64 linux/arm64 windows/amd64 windows/arm64; do
+            os="${target%/*}"
+            arch="${target#*/}"
+            if [ "$os" = windows ]; then
+              out="../resources/bridge-win-$arch.exe"
+            else
+              out="../resources/bridge-linux-$arch"
+            fi
+            GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags="-s -w" -o "$out" .
+          done
+
+      - name: Set up PHP
+        uses: pmmp/setup-php-action@3.2.0
+        with:
+          php-version: ${{ inputs.php-version }}
+          install-path: ./bin
+
+      - name: Get plugin info
+        id: plugin-info
+        run: |
+          PM_VERSION=$(php -r "
+            \$api = yaml_parse_file('plugin.yml')['api'];
+            echo is_array(\$api) ? implode(', ', \$api) : \$api;
+          ")
+          PLUGIN_VERSION=$(php -r "echo yaml_parse_file('plugin.yml')['version'];")
+          PLUGIN_NAME=$(php -r "echo yaml_parse_file('plugin.yml')['name'];")
+          echo "PM_VERSION=$PM_VERSION"         >> $GITHUB_OUTPUT
+          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_OUTPUT
+          echo "PLUGIN_NAME=$PLUGIN_NAME"       >> $GITHUB_OUTPUT
+
+      - uses: SOF3/pharynx@v0.2
+        id: pharynx
+        with:
+          composer: 'false'
+          stage-poggit: 'false'
+
+      - name: Compress phar
+        run: |
+          php -dphar.readonly=0 -r "
+            \$phar = new Phar('${{ steps.pharynx.outputs.output-phar }}');
+            \$phar->compressFiles(Phar::GZ);
+          "
+
+      - name: Rename phar
+        run: mv '${{ steps.pharynx.outputs.output-phar }}' "$RUNNER_TEMP/${{ steps.plugin-info.outputs.PLUGIN_NAME }}.phar"
+
+      - name: Generate artifact attestation
+        if: inputs.attest
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ runner.temp }}/${{ steps.plugin-info.outputs.PLUGIN_NAME }}.phar
+
+      - name: Upload phar artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.plugin-info.outputs.PLUGIN_NAME }}-phar
+          path: ${{ runner.temp }}/${{ steps.plugin-info.outputs.PLUGIN_NAME }}.phar
+          retention-days: ${{ inputs.retention-days }}

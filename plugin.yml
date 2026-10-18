@@ -1,0 +1,5 @@
+name: NXS
+author: alvin0319
+main: alvin0319\NXS\Loader
+version: 0.1.0
+api: 5.0.0

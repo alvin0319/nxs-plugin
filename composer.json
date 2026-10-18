@@ -1,0 +1,16 @@
+{
+    "name": "alvin0319/nxs-plugin",
+    "description": "A Axolotl-PM plugin providing NXS protocol",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "alvin0319",
+            "email": "alvin7810@naver.com"
+        }
+    ],
+    "require-dev": {
+        "axolotl-pm/pocketmine-mp": "^5.50",
+        "phpstan/phpstan": "2.1.46"
+    }
+}

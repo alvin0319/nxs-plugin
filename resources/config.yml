@@ -1,0 +1,40 @@
+# HTTPS origin of the NetherNet External Signaling provider. NXS stays disabled while this is empty.
+provider-origin: "https://agent.warden.cloud"
+
+# Bearer token for registering with the provider. Leave empty to use anonymous proof of work, if the provider allows it.
+# Use "file:<path>" to read it from a file, relative to the plugin data folder.
+token: ""
+
+# UDP port players connect to. It must differ from the RakNet and NetherNet ports.
+port: 19133
+
+# Public endpoints advertised to players, such as "203.0.113.1:19133". Set these behind NAT, port forwarding or Docker.
+endpoints: []
+
+# Maximum number of players admitted through NXS. 0 uses the server's maximum player count.
+capacity: 0
+
+# Label of this instance at the provider.
+label: ""
+
+# Path of the bridge executable. Empty extracts the bridge bundled in the plugin for this OS and architecture into the system temporary directory.
+bridge-binary: ""
+
+# Path of the Unix socket shared with the bridge. Empty uses "nxs.sock" in the plugin data folder. The path must be shorter than 108 bytes.
+socket-path: ""
+
+# Use the provider's WebSocket control channel if it offers one. Requests fall back to HTTPS while it is unavailable.
+websocket: true
+
+# Let the provider forward players that cannot reach the server directly, so they can join without port forwarding.
+# Requires websocket. The server and the player must share an address family (IPv4 or IPv6).
+assisted-joins: false
+
+# Answer the provider's connectivity checks on the UDP port. These test connections never reach the game.
+diagnostics: false
+
+# Report to the provider whether admitted players joined the game or were rejected.
+game-outcomes: true
+
+# Log debug output of the bridge.
+debug: false
